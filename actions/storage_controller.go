@@ -6,19 +6,19 @@ import (
 	"strings"
 
 	"github.com/bmc-toolbox/common"
+	"github.com/go-logr/logr"
 	"github.com/metal-toolbox/ironlib/model"
 	"github.com/metal-toolbox/ironlib/utils"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 var ErrVirtualDiskManagerUtilNotIdentified = errors.New("virtual disk management utility not identifed")
 
 type StorageControllerAction struct {
-	Logger *logrus.Logger
+	Logger logr.Logger
 }
 
-func NewStorageControllerAction(logger *logrus.Logger) *StorageControllerAction {
+func NewStorageControllerAction(logger logr.Logger) *StorageControllerAction {
 	return &StorageControllerAction{logger}
 }
 
@@ -66,14 +66,8 @@ func (s *StorageControllerAction) ListVirtualDisks(ctx context.Context, hba *com
 
 // GetControllerUtility returns the utility command for the given vendor
 func (s *StorageControllerAction) GetControllerUtility(vendorName, modelName string) (VirtualDiskManager, error) {
-	var trace bool
-
-	if s.Logger.GetLevel().String() == "trace" {
-		trace = true
-	}
-
 	if strings.EqualFold(vendorName, common.VendorMarvell) {
-		return utils.NewMvcliCmd(trace), nil
+		return utils.NewMvcliCmd(s.Logger.GetV() >= 5), nil
 	}
 
 	return nil, errors.Wrap(ErrVirtualDiskManagerUtilNotIdentified, "vendor: "+vendorName+" model: "+modelName)
@@ -81,19 +75,11 @@ func (s *StorageControllerAction) GetControllerUtility(vendorName, modelName str
 
 // GetWipeUtility returns the wipe utility based on the disk wipping features
 func (s *StorageControllerAction) GetWipeUtility(logicalName string) (DiskWiper, error) {
-	var trace bool
-
-	if s.Logger.GetLevel().String() == "trace" {
-		trace = true
-	}
-
-	s.Logger.Tracef("%s | Detecting wipe utility", logicalName)
-	// TODO: use disk wipping features to return the best wipe utility, currently only one available
-
-	return utils.NewFillZeroCmd(trace), nil
+	s.Logger.V(5).Info("Detecting wipe utility", "device", logicalName)
+	return utils.NewFillZeroCmd(s.Logger.GetV() >= 5), nil
 }
 
-func (s *StorageControllerAction) WipeDisk(ctx context.Context, log *logrus.Logger, logicalName string) error {
+func (s *StorageControllerAction) WipeDisk(ctx context.Context, log logr.Logger, logicalName string) error {
 	util, err := s.GetWipeUtility(logicalName)
 	if err != nil {
 		return err
