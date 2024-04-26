@@ -3,23 +3,22 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/bmc-toolbox/common"
-	"github.com/bombsimon/logrusr/v4"
 	"github.com/metal-toolbox/ironlib"
 	"github.com/metal-toolbox/ironlib/model"
-	"github.com/sirupsen/logrus"
 )
 
 // This example invokes ironlib to install the supermicro BMC firmware
 
 func main() {
-	logger := logrusr.New(logrus.New())
+	logger := slog.Default()
 
 	device, err := ironlib.New(logger)
 	if err != nil {
-		logger.Error(err, "creating ironlib manager")
+		logger.Error("creating ironlib manager", "error", err)
 		os.Exit(1)
 	}
 
@@ -32,7 +31,7 @@ func main() {
 
 	hardware, err := device.GetInventory(context.TODO())
 	if err != nil {
-		logger.Error(err, "getting inventory")
+		logger.Error("getting inventory", "error", err)
 		os.Exit(1)
 	}
 
@@ -40,7 +39,7 @@ func main() {
 
 	err = device.InstallUpdates(context.TODO(), options)
 	if err != nil {
-		logger.Error(err, "insatlling updates")
+		logger.Error("insatlling updates", "error", err)
 		os.Exit(1)
 	}
 }

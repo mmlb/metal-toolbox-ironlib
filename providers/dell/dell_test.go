@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/bmc-toolbox/common"
-	"github.com/go-logr/logr/testr"
 	"github.com/metal-toolbox/ironlib/actions"
 	dellFixtures "github.com/metal-toolbox/ironlib/fixtures/dell"
 	"github.com/metal-toolbox/ironlib/model"
 	"github.com/metal-toolbox/ironlib/utils"
+	"github.com/neilotoole/slogt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,7 +31,7 @@ func newFakeDellDevice(t *testing.T) *dell {
 	return &dell{
 		hw:     hardware,
 		dnf:    utils.NewFakeDnf(),
-		logger: testr.New(t),
+		logger: slogt.New(t),
 	}
 }
 

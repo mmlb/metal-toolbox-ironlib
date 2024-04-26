@@ -73,11 +73,11 @@ func (d *dell) installUpdate(ctx context.Context, updateFile string, downgrade b
 	e := utils.NewExecutor(updateFile)
 	e.SetArgs(args)
 
-	if d.logger.GetV() >= 5 {
+	if d.logger.Enabled(nil, -5) {
 		e.SetVerbose()
 	}
 
-	logger := d.logger.WithValues("file", updateFile)
+	logger := d.logger.With("file", updateFile)
 	logger.Info("Installing dell Update Bin file")
 
 	result, err := e.ExecWithContext(ctx)
@@ -220,17 +220,17 @@ func (d *dell) checkExitCode(exitCode int) error {
 	case utils.DSUExitCodeUpdatesApplied:
 		d.hw.UpdatesInstalled = true
 		d.hw.PendingReboot = true
-		d.logger.V(5).Info("update applied successfully")
+		d.logger.Debug("update applied successfully")
 
 		return nil
 	case utils.DSUExitCodeRebootRequired, BinUpdateExitCodeRebootRequired: // updates applied, reboot required
-		d.logger.V(5).Info("update applied, reboot required")
+		d.logger.Debug("update applied, reboot required")
 		d.hw.UpdatesInstalled = true
 		d.hw.PendingReboot = true
 
 		return nil
 	case utils.DSUExitCodeNoUpdatesAvailable: // no applicable updates
-		d.logger.V(5).Info("no pending/applicable update(s) for device")
+		d.logger.Debug("no pending/applicable update(s) for device")
 
 		return nil
 	default:

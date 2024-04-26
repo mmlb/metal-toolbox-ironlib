@@ -2,9 +2,9 @@ package generic
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmc-toolbox/common"
-	"github.com/go-logr/logr"
 	"github.com/metal-toolbox/ironlib/actions"
 	"github.com/metal-toolbox/ironlib/errs"
 	"github.com/metal-toolbox/ironlib/model"
@@ -15,11 +15,11 @@ import (
 // A Generic device has methods to collect hardware inventory, regardless of the vendor
 type Generic struct {
 	hw     *model.Hardware
-	logger logr.Logger
+	logger *slog.Logger
 }
 
 // New returns a generic device manager
-func New(dmidecode *utils.Dmidecode, l logr.Logger) (actions.DeviceManager, error) {
+func New(dmidecode *utils.Dmidecode, l *slog.Logger) (actions.DeviceManager, error) {
 	deviceVendor, err := dmidecode.Manufacturer()
 	if err != nil {
 		return nil, errors.Wrap(errs.NewDmidecodeValueError("manufacturer", "", 0), err.Error())

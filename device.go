@@ -2,9 +2,9 @@ package ironlib
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/bmc-toolbox/common"
-	"github.com/go-logr/logr"
 	"github.com/metal-toolbox/ironlib/actions"
 	"github.com/metal-toolbox/ironlib/errs"
 	"github.com/metal-toolbox/ironlib/providers/asrockrack"
@@ -17,7 +17,7 @@ import (
 
 // New returns a device Manager interface based on the hardware deviceVendor, model attributes
 // by default returns a Generic device instance that only returns the device inventory
-func New(logger logr.Logger) (m actions.DeviceManager, err error) {
+func New(logger *slog.Logger) (m actions.DeviceManager, err error) {
 	dmidecode, err := utils.NewDmidecode()
 	if err != nil {
 		return nil, errors.Wrap(errs.ErrDmiDecodeRun, err.Error())

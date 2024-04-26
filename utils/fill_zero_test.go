@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/go-logr/logr/testr"
+	"github.com/neilotoole/slogt"
 )
 
 func Test_NewFillZeroCmd(t *testing.T) {
@@ -40,7 +40,7 @@ func Test_WipeDisk(t *testing.T) {
 			zw := &FillZero{}
 
 			// Test Fill function
-			err = zw.WipeDisk(ctx, testr.New(t), tmpfile.Name())
+			err = zw.WipeDisk(ctx, slogt.New(t), tmpfile.Name())
 			if err != nil {
 				t.Errorf("Fill returned an error: %v", err)
 			}

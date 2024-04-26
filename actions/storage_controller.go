@@ -3,10 +3,10 @@ package actions
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/bmc-toolbox/common"
-	"github.com/go-logr/logr"
 	"github.com/metal-toolbox/ironlib/model"
 	"github.com/metal-toolbox/ironlib/utils"
 	"github.com/pkg/errors"
@@ -15,10 +15,10 @@ import (
 var ErrVirtualDiskManagerUtilNotIdentified = errors.New("virtual disk management utility not identifed")
 
 type StorageControllerAction struct {
-	Logger logr.Logger
+	Logger *slog.Logger
 }
 
-func NewStorageControllerAction(logger logr.Logger) *StorageControllerAction {
+func NewStorageControllerAction(logger *slog.Logger) *StorageControllerAction {
 	return &StorageControllerAction{logger}
 }
 
@@ -67,7 +67,7 @@ func (s *StorageControllerAction) ListVirtualDisks(ctx context.Context, hba *com
 // GetControllerUtility returns the utility command for the given vendor
 func (s *StorageControllerAction) GetControllerUtility(vendorName, modelName string) (VirtualDiskManager, error) {
 	if strings.EqualFold(vendorName, common.VendorMarvell) {
-		return utils.NewMvcliCmd(s.Logger.GetV() >= 5), nil
+		return utils.NewMvcliCmd(s.Logger.Enabled(nil, -5)), nil
 	}
 
 	return nil, errors.Wrap(ErrVirtualDiskManagerUtilNotIdentified, "vendor: "+vendorName+" model: "+modelName)
@@ -75,11 +75,11 @@ func (s *StorageControllerAction) GetControllerUtility(vendorName, modelName str
 
 // GetWipeUtility returns the wipe utility based on the disk wipping features
 func (s *StorageControllerAction) GetWipeUtility(logicalName string) (DiskWiper, error) {
-	s.Logger.V(5).Info("Detecting wipe utility", "device", logicalName)
-	return utils.NewFillZeroCmd(s.Logger.GetV() >= 5), nil
+	s.Logger.Debug("Detecting wipe utility", "device", logicalName)
+	return utils.NewFillZeroCmd(s.Logger.Enabled(nil, -5)), nil
 }
 
-func (s *StorageControllerAction) WipeDisk(ctx context.Context, log logr.Logger, logicalName string) error {
+func (s *StorageControllerAction) WipeDisk(ctx context.Context, log *slog.Logger, logicalName string) error {
 	util, err := s.GetWipeUtility(logicalName)
 	if err != nil {
 		return err

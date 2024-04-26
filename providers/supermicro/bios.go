@@ -13,7 +13,7 @@ func (s *supermicro) SetBIOSConfiguration(context.Context, map[string]string) er
 
 // GetBIOSConfiguration returns bios configuration settings
 func (s *supermicro) GetBIOSConfiguration(ctx context.Context) (map[string]string, error) {
-	sum := utils.NewSupermicroSUM(s.logger.GetV() >= 5)
+	sum := utils.NewSupermicroSUM(s.logger.Enabled(nil, -5))
 
 	return sum.GetBIOSConfiguration(ctx, "")
 }

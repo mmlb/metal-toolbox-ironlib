@@ -2,9 +2,9 @@ package supermicro
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmc-toolbox/common"
-	"github.com/go-logr/logr"
 	"github.com/metal-toolbox/ironlib/actions"
 	"github.com/metal-toolbox/ironlib/errs"
 	"github.com/metal-toolbox/ironlib/firmware"
@@ -15,11 +15,11 @@ import (
 
 type supermicro struct {
 	hw        *model.Hardware
-	logger    logr.Logger
+	logger    *slog.Logger
 	dmidecode *utils.Dmidecode
 }
 
-func New(dmidecode *utils.Dmidecode, l logr.Logger) (actions.DeviceManager, error) {
+func New(dmidecode *utils.Dmidecode, l *slog.Logger) (actions.DeviceManager, error) {
 	deviceVendor, err := dmidecode.Manufacturer()
 	if err != nil {
 		return nil, errors.Wrap(errs.NewDmidecodeValueError("manufacturer", "", 0), err.Error())
@@ -70,7 +70,7 @@ func (s *supermicro) GetInventory(ctx context.Context, options ...actions.Option
 	// Collect device inventory
 	s.logger.Info("Collecting hardware inventory")
 
-	trace := s.logger.GetV() >= 5
+	trace := s.logger.Enabled(nil, -5)
 
 	// define collectors for supermicro hardware
 	collectors := &actions.Collectors{

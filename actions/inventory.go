@@ -4,11 +4,11 @@ package actions
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"runtime/debug"
 	"strings"
 
 	"github.com/bmc-toolbox/common"
-	"github.com/go-logr/logr"
 	"github.com/metal-toolbox/ironlib/firmware"
 	"github.com/metal-toolbox/ironlib/model"
 	"github.com/metal-toolbox/ironlib/utils"
@@ -28,7 +28,7 @@ type InventoryCollectorAction struct {
 	collectors Collectors
 
 	// something to track our execution
-	log logr.Logger
+	log *slog.Logger
 
 	// device is the model in which the collected inventory is recorded.
 	device *common.Device
@@ -130,7 +130,7 @@ func WithDisabledCollectorUtilities(utilityNames []model.CollectorUtility) Optio
 }
 
 // NewActionrunner returns an Actions runner that is capable of collecting inventory.
-func NewInventoryCollectorAction(log logr.Logger, options ...Option) *InventoryCollectorAction {
+func NewInventoryCollectorAction(log *slog.Logger, options ...Option) *InventoryCollectorAction {
 	a := &InventoryCollectorAction{
 		log: log,
 	}
@@ -203,73 +203,73 @@ func (a *InventoryCollectorAction) Collect(ctx context.Context, device *common.D
 	// one drive/nic/storagecontroller/psu component returns an error.
 
 	// Collect initial device inventory
-	a.log.V(4).Info("collect initial inventory")
+	a.log.Debug("collect initial inventory")
 	err := a.collectors.InventoryCollector.Collect(ctx, a.device)
-	a.log.V(4).Error(err, "collect initial done")
+	a.log.Debug("collect initial done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving device inventory")
 	}
 
 	// Collect drive smart data
-	a.log.V(4).Info("collect drives")
+	a.log.Debug("collect drives")
 	err = a.CollectDrives(ctx)
-	a.log.V(4).Error(err, "collect drives done")
+	a.log.Debug("collect drives done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving drive inventory")
 	}
 
 	// Collect NIC info
-	a.log.V(4).Info("collect nics")
+	a.log.Debug("collect nics")
 	err = a.CollectNICs(ctx)
-	a.log.V(4).Error(err, "collect nics done")
+	a.log.Debug("collect nics done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving NIC inventory")
 	}
 
 	// Collect BIOS info
-	a.log.V(4).Info("collect bios")
+	a.log.Debug("collect bios")
 	err = a.CollectBIOS(ctx)
-	a.log.V(4).Error(err, "collect bios done")
+	a.log.Debug("collect bios done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving BIOS inventory")
 	}
 
 	// Collect CPLD info
-	a.log.V(4).Info("collect cpld")
+	a.log.Debug("collect cpld")
 	err = a.CollectCPLDs(ctx)
-	a.log.V(4).Error(err, "collect cpld done")
+	a.log.Debug("collect cpld done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving CPLD inventory")
 	}
 
 	// Collect BMC info
-	a.log.V(4).Info("collect bmc")
+	a.log.Debug("collect bmc")
 	err = a.CollectBMC(ctx)
-	a.log.V(4).Error(err, "collect bmc done")
+	a.log.Debug("collect bmc done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving BMC inventory")
 	}
 
 	// Collect TPM info
-	a.log.V(4).Info("collect tpm")
+	a.log.Debug("collect tpm")
 	err = a.CollectTPMs(ctx)
-	a.log.V(4).Error(err, "collect tpm done")
+	a.log.Debug("collect tpm done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving TPM inventory")
 	}
 
 	// Collect Firmware checksums
-	a.log.V(4).Info("collect firmware checksum")
+	a.log.Debug("collect firmware checksum")
 	err = a.CollectFirmwareChecksums(ctx)
-	a.log.V(4).Error(err, "collect firmware checksum done")
+	a.log.Debug("collect firmware checksum done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving Firmware checksums")
 	}
 
 	// Collect UEFI variables
-	a.log.V(4).Info("collect uefi variables")
+	a.log.Debug("collect uefi variables")
 	err = a.CollectUEFIVariables(ctx)
-	a.log.V(4).Error(err, "collect uefi variables done")
+	a.log.Debug("collect uefi variables done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving UEFI variables")
 	}
@@ -284,9 +284,9 @@ func (a *InventoryCollectorAction) Collect(ctx context.Context, device *common.D
 	}
 
 	// Collect StorageController info
-	a.log.V(4).Info("collect storage controller")
+	a.log.Debug("collect storage controller")
 	err = a.CollectStorageControllers(ctx)
-	a.log.V(4).Error(err, "collect storage controller done")
+	a.log.Debug("collect storage controller done", "error", err)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving StorageController inventory")
 	}
@@ -300,9 +300,9 @@ func (a *InventoryCollectorAction) Collect(ctx context.Context, device *common.D
 		}
 
 		if len(a.collectors.DriveCollectors) > 0 {
-			a.log.V(4).Info("dynamic collect drive")
+			a.log.Debug("dynamic collect drive")
 			err = a.CollectDrives(ctx)
-			a.log.V(4).Error(err, "dynamic collect drive done")
+			a.log.Debug("dynamic collect drive done", "error", err)
 
 			if err != nil && a.failOnError {
 				return errors.Wrap(err, "error retrieving drive inventory")
@@ -311,12 +311,12 @@ func (a *InventoryCollectorAction) Collect(ctx context.Context, device *common.D
 	}
 
 	// CollectDriveCapabilities is to be invoked after Drives()
-	a.log.V(4).Info("collect drive capabilities")
+	a.log.Debug("collect drive capabilities")
 	err = a.CollectDriveCapabilities(ctx)
 	if err != nil && a.failOnError {
 		return errors.Wrap(err, "error retrieving DriveCapabilities")
 	}
-	a.log.V(4).Error(err, "collect drive capabilities done")
+	a.log.Debug("collect drive capabilities done", "error", err)
 
 	a.setDefaultAttributes()
 
@@ -731,13 +731,13 @@ func (a *InventoryCollectorAction) CollectFirmwareChecksums(ctx context.Context)
 
 	sumStr, err := a.collectors.FirmwareChecksumCollector.BIOSLogoChecksum(ctx)
 	if err != nil {
-		a.log.V(3).Error(err, "error collecting BIOS Logo checksum")
+		a.log.Warn("error collecting BIOS Logo checksum", "error", err)
 		return err
 	}
 
 	if a.device.BIOS == nil {
 		// XXX: how did we get here?
-		a.log.Error(errors.New("nil device bios data"), "expected bios data")
+		a.log.Error("expected bios data", "error", errors.New("nil device bios data"))
 		return nil
 	}
 

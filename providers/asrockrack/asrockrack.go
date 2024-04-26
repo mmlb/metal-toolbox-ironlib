@@ -2,9 +2,9 @@ package asrockrack
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/bmc-toolbox/common"
-	"github.com/go-logr/logr"
 	"github.com/metal-toolbox/ironlib/actions"
 	"github.com/metal-toolbox/ironlib/model"
 	"github.com/metal-toolbox/ironlib/utils"
@@ -14,11 +14,11 @@ import (
 type asrockrack struct {
 	trace  bool
 	hw     *model.Hardware
-	logger logr.Logger
+	logger *slog.Logger
 }
 
 // New returns a ASRockRack device manager
-func New(dmidecode *utils.Dmidecode, l logr.Logger) (actions.DeviceManager, error) {
+func New(dmidecode *utils.Dmidecode, l *slog.Logger) (actions.DeviceManager, error) {
 	// set device
 	device := common.NewDevice()
 

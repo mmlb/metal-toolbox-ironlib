@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"time"
-
-	"github.com/go-logr/logr"
 )
 
 type FillZero struct {
@@ -23,8 +22,8 @@ func NewFillZeroCmd(trace bool) *FillZero {
 	return &z
 }
 
-func (z *FillZero) WipeDisk(ctx context.Context, l logr.Logger, logicalName string) error {
-	log := l.WithValues("device", logicalName)
+func (z *FillZero) WipeDisk(ctx context.Context, log *slog.Logger, logicalName string) error {
+	log = log.With("device", logicalName)
 	log.Info("starting zero-fill")
 
 	// Write open
@@ -40,7 +39,7 @@ func (z *FillZero) WipeDisk(ctx context.Context, l logr.Logger, logicalName stri
 		return err
 	}
 
-	log.WithValues("size", fmt.Sprintf("%dB", partitionSize)).Info("disk info detected")
+	log.With("size", fmt.Sprintf("%dB", partitionSize)).Info("disk info detected")
 	_, err = file.Seek(0, io.SeekStart)
 	if err != nil {
 		return err
@@ -81,7 +80,7 @@ func (z *FillZero) WipeDisk(ctx context.Context, l logr.Logger, logicalName stri
 	return nil
 }
 
-func printProgress(log logr.Logger, totalBytesWritten, partitionSize int64, start time.Time, bytesSinceLastPrint int64) {
+func printProgress(log *slog.Logger, totalBytesWritten, partitionSize int64, start time.Time, bytesSinceLastPrint int64) {
 	// Calculate progress and ETA
 	progress := float64(totalBytesWritten) / float64(partitionSize) * 100
 	elapsed := time.Since(start).Seconds()
@@ -89,7 +88,7 @@ func printProgress(log logr.Logger, totalBytesWritten, partitionSize int64, star
 	remainingSeconds := (float64(partitionSize) - float64(totalBytesWritten)) / speed // Remaining time in seconds
 	remainingHours := float64(remainingSeconds / 3600)
 	mbPerSecond := speed / (1024 * 1024)
-	log.WithValues(
+	log.With(
 		"progress", fmt.Sprintf("%.2f%%", progress),
 		"speed", fmt.Sprintf("%.2f MB/s", mbPerSecond),
 		"remaining", fmt.Sprintf("%.2f hour(s)", remainingHours),
